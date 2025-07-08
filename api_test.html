@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .endpoint-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .endpoint-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .response-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .response-container.error {
+            background-color: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        .response-container.success {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+            color: #666;
+        }
+        .base-url-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>FastAPI テストインターフェース</h1>
+    
+    <div class="base-url-container">
+        <div class="endpoint-title">ベースURL設定</div>
+        <input type="text" id="baseUrl" value="http://localhost:8000" placeholder="例: http://localhost:8000">
+    </div>
+
+    <div class="endpoint-container">
+        <div class="endpoint-title">ルートエンドポイント</div>
+        <div class="endpoint-url">GET /</div>
+        <button onclick="testEndpoint('/', 'root-response')">テスト実行</button>
+        <span id="root-loading" class="loading" style="display: none;">実行中...</span>
+        <div id="root-response" class="response-container" style="display: none;"></div>
+    </div>
+
+    <div class="endpoint-container">
+        <div class="endpoint-title">ヘルスチェック</div>
+        <div class="endpoint-url">GET /health</div>
+        <button onclick="testEndpoint('/health', 'health-response')">テスト実行</button>
+        <span id="health-loading" class="loading" style="display: none;">実行中...</span>
+        <div id="health-response" class="response-container" style="display: none;"></div>
+    </div>
+
+    <div class="endpoint-container">
+        <div class="endpoint-title">テストエンドポイント</div>
+        <div class="endpoint-url">GET /test</div>
+        <button onclick="testEndpoint('/test', 'test-response')">テスト実行</button>
+        <span id="test-loading" class="loading" style="display: none;">実行中...</span>
+        <div id="test-response" class="response-container" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testEndpoint(endpoint, responseId) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const responseDiv = document.getElementById(responseId);
+            const loadingSpan = document.getElementById(responseId.replace('-response', '-loading'));
+            const button = event.target;
+            
+            // UIの状態を更新
+            button.disabled = true;
+            loadingSpan.style.display = 'inline';
+            responseDiv.style.display = 'none';
+            responseDiv.className = 'response-container';
+            
+            try {
+                const response = await fetch(baseUrl + endpoint);
+                const data = await response.json();
+                
+                // レスポンスを表示
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+                responseDiv.className = 'response-container success';
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                // エラーを表示
+                responseDiv.textContent = `エラー: ${error.message}\n\nサーバーが起動していることを確認してください。\nコマンド: python main.py`;
+                responseDiv.className = 'response-container error';
+                responseDiv.style.display = 'block';
+            } finally {
+                // UIの状態を元に戻す
+                button.disabled = false;
+                loadingSpan.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
